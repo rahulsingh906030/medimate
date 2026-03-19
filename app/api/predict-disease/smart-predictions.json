@@ -1,0 +1,91 @@
+{
+    "conditions": {
+        "flu": {
+            "keywords": ["fever", "cough", "sore throat", "body aches", "fatigue", "chills", "runny nose"],
+            "disease": "Influenza (Flu)",
+            "confidence": 85,
+            "specialty": "General Physician",
+            "remedies": ["Rest 7-9 hours/night", "Hydrate with water/electrolytes", "OTC pain relievers", "Warm fluids/honey"],
+            "precautions": ["Fever >3 days → see doctor", "Difficulty breathing → ER", "Chest pain persists"]
+        },
+        "cold": {
+            "keywords": ["runny nose", "sneezing", "congestion", "mild cough"],
+            "disease": "Common Cold",
+            "confidence": 90,
+            "specialty": "General Physician",
+            "remedies": ["Saline nasal rinse", "Steam inhalation", "Rest & fluids", "OTC decongestants"],
+            "precautions": ["Symptoms >10 days", "Worsening cough", "High fever"]
+        },
+        "covid": {
+            "keywords": ["fever", "cough", "loss taste", "loss smell", "fatigue", "shortness breath"],
+            "disease": "Possible COVID-19",
+            "confidence": 80,
+            "specialty": "General Physician",
+            "remedies": ["Isolate", "Monitor oxygen", "Hydrate", "OTC fever meds"],
+            "precautions": ["Test immediately", "ER if O2 <92%", "Shortness worsens"]
+        },
+        "migraine": {
+            "keywords": ["headache", "throbbing", "nausea", "light sensitive", "sound sensitive"],
+            "disease": "Migraine",
+            "confidence": 88,
+            "specialty": "Neurologist",
+            "remedies": ["Dark quiet room", "Cold compress", "Hydrate", "OTC migraine meds"],
+            "precautions": ["Sudden worst headache", ">72hrs duration", "Vision changes"]
+        },
+        "hypertension": {
+            "keywords": ["headache", "dizziness", "chest pain", "vision blur", "nosebleed"],
+            "disease": "Hypertension Crisis",
+            "confidence": 75,
+            "specialty": "Cardiologist",
+            "remedies": ["Rest sitting", "Monitor BP", "No salt/caffeine"],
+            "precautions": ["BP >180/120 → ER", "Chest pain", "Confusion"]
+        },
+        "gastritis": {
+            "keywords": ["stomach pain", "nausea", "vomiting", "burning stomach", "bloating"],
+            "disease": "Gastritis",
+            "confidence": 82,
+            "specialty": "Gastroenterologist",
+            "remedies": ["Bland diet BRAT", "Antacids", "No NSAIDs/alcohol", "Small meals"],
+            "precautions": ["Bloody vomit/stool", "Severe pain >24h", "Weight loss"]
+        },
+        "anxiety": {
+            "keywords": ["panic", "heart racing", "short breath", "chest tight", "dizziness", "sweating"],
+            "disease": "Anxiety Attack",
+            "confidence": 78,
+            "specialty": "Psychiatrist",
+            "remedies": ["Deep breathing 4-7-8", "Grounding technique", "Cool water face", "Safe space"],
+            "precautions": ["Symptoms >30min", "First time age>40", "Fainting"]
+        },
+        "allergies": {
+            "keywords": ["itchy eyes", "sneezing", "rash", "swollen", "hives"],
+            "disease": "Allergic Reaction",
+            "confidence": 92,
+            "specialty": "Allergist",
+            "remedies": ["Antihistamines", "Cool compress", "Avoid triggers"],
+            "precautions": ["Swelling throat", "Difficulty breathing", "Rapid rash spread"]
+        },
+        "uti": {
+            "keywords": ["burning pee", "frequent urine", "lower abdominal pain", "cloudy urine"],
+            "disease": "Urinary Tract Infection",
+            "confidence": 87,
+            "specialty": "Urologist",
+            "remedies": ["Cranberry juice", "Hydrate heavily", "Urinate frequently"],
+            "precautions": ["Fever/chills", "Back pain", "Blood in urine"]
+        },
+        "arthritis": {
+            "keywords": ["joint pain", "stiff", "swollen joints", "worse morning"],
+            "disease": "Arthritis Flare",
+            "confidence": 80,
+            "specialty": "Rheumatologist",
+            "remedies": ["Warm/cold packs", "Gentle stretch", "OTC anti-inflammatory"],
+            "precautions": ["Sudden swelling", "Fever", "Cannot bear weight"]
+        },
+        "default": {
+            "disease": "General Medical Concern",
+            "confidence": 60,
+            "specialty": "General Physician",
+            "remedies": ["Rest & hydrate", "Monitor symptoms", "Bland diet"],
+            "precautions": ["Worsening symptoms", "New symptoms", "Last >3 days"]
+        }
+    }
+}
