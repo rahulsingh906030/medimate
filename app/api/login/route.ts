@@ -1,22 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { mockUsers } from '../auth/users.js'
+import { readUsers } from '../auth/users'
+import type { User } from '../auth/users'
 
-declare global {
-  var mockUsers: Array<{
-    id: number;
-    name: string;
-    email: string;
-    password: string;
-  }>;
-}
-
-const users = (globalThis as any).mockUsers || []
+const users = readUsers()
 
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json()
 
-    const user = users.find((u: any) => u.email === email && u.password === password)
+    const user = users.find((u: User) => u.email === email && u.password === password)
 
     if (!user) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
