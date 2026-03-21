@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server"
-import type { ConditionData } from "./types"
 import predictions from "./smart-predictions.json"
-import type { Prediction } from './types'
+
+interface Prediction {
+  disease: string
+  confidence: number
+  remedies: string[]
+  doctorSpecialty: string
+  precautions: string[]
+}
 
 // Smart symptom-based disease prediction (no external API needed)
 export async function POST(req: Request) {
@@ -18,6 +24,7 @@ export async function POST(req: Request) {
     return NextResponse.json(prediction)
 
   } catch (error) {
+    console.error("Prediction error:", error)
     return NextResponse.json({
       disease: "Consult a Doctor",
       confidence: 50,
@@ -31,13 +38,23 @@ export async function POST(req: Request) {
 function getSmartPrediction(symptoms: string): Prediction {
   const lowerSymptoms = symptoms.toLowerCase().replace(/[^\w\s]/g, '')
 
+  // Define condition data with proper typing
+  type ConditionData = {
+    keywords: string[]
+    disease: string
+    confidence: number
+    specialty: string
+    remedies: string[]
+    precautions: string[]
+  }
+
   // Find best matching condition
   let bestMatch: { condition: string, score: number } = { condition: "default", score: 0 }
   
-  for (const [condition, data] of Object.entries(predictions.conditions) ) {
+  for (const [condition, data] of Object.entries(predictions.conditions) as [string, ConditionData][]) {
     if (condition === "default") continue
     
-    const matches = (data as ConditionData).keywords.filter((keyword: string) =>
+    const matches = (data as ConditionData).keywords.filter((keyword: string) => 
       lowerSymptoms.includes(keyword.toLowerCase())
     )
     const score = matches.length
@@ -47,11 +64,10 @@ function getSmartPrediction(symptoms: string): Prediction {
     }
   }
 
-  const defaultData = predictions.conditions.default as ConditionData
-  const matchedData = (predictions.conditions[bestMatch.condition as keyof typeof predictions.conditions] as ConditionData) || defaultData
+  const matchedData = predictions.conditions[bestMatch.condition as keyof typeof predictions.conditions] as ConditionData
   
-  // Adjust confidence based on match strength (max 98%)
-  const confidence = Math.min(98, matchedData.confidence + (bestMatch.score * 5))
+  // Adjust confidence based on match strength (max 95%)
+const confidence = Math.min(98, matchedData.confidence + (bestMatch.score * 5))
 
   return {
     disease: matchedData.disease,
@@ -61,4 +77,3 @@ function getSmartPrediction(symptoms: string): Prediction {
     precautions: matchedData.precautions,
   }
 }
-

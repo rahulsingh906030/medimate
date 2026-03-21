@@ -1,57 +1,69 @@
-# MediMate - AI Health Assistant
+# MediMate disease prediction
 
-## Features
-- AI symptom checker with disease prediction
-- **Location-aware doctor & hospital search** (GPS or IP fallback, Google Places ready)
-- Book appointments
-- Dashboard with health history
-- Voice input for symptoms
-- Responsive design with Tailwind CSS
+Generated with BLACKBOX AI Builder
 
-## Location-Based Recommendations ✅
-The app now detects your **real-time location** worldwide:
-1. **Primary**: Browser GPS (high accuracy)
-2. **Fallback**: IP geolocation (ipapi.co - free)
-3. **Backend API**: Auto-detects IP if no GPS
-4. **Real data**: Google Places API (add key for live nearby doctors/hospitals)
+## Getting Started
 
-No more Noida hardcode - works anywhere!
+First, install the dependencies:
 
-## Setup
 ```bash
 npm install
+# or
+yarn install
+# or
+pnpm install
+```
+
+Then, run the development server:
+
+```bash
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
 ```
 
-### Google API Keys (Recommended for real data)
-1. Get **Google Places API key**: [Google Cloud Console](https://console.cloud.google.com/)
-2. Enable **Places API**
-3. Add to `.env.local`:
-```
-GOOGLE_PLACES_API_KEY=your_server_key_here
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_embed_key_here  # Optional for dynamic maps
-```
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### Test Location Feature
-1. Visit `/find-doctors`
-2. Allow/deny GPS → See IP fallback + readable address (e.g., "Mumbai, Maharashtra, India, delhi, noida, greater noida, bihar")
-3. Change specialty → Auto-search nearby
-4. Symptom checker → Click doctor link → Location preserved
+## Project Structure
+
+This project uses:
+- **Next.js** - React framework for production
+- **React** - UI library
+- **TypeScript** - Type-safe JavaScript
+- **Tailwind CSS** - Utility-first CSS framework
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Learn Next.js](https://nextjs.org/learn)
+
+## Deploy
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new).
+
+Check out the [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+
+---
+
+
+# Medimate 🏥
+
+An intelligent healthcare web app that predicts diseases based on symptoms and suggests nearby doctors.
+
+## Features
+- Symptom-based disease prediction
+- Location-based doctor search
+- Clean UI
 
 ## Tech Stack
-- Next.js 14 App Router
+- Next.js
+- React
 - TypeScript
 - Tailwind CSS
-- shadcn/ui
-- Lucide React icons
 
-## Pages
-- `/` - Home
-- `/login` - Login
-- `/register` - Register
-- `/dashboard` - Health history
-- `/find-doctors` - **Nearby doctors (GPS/IP)**
-- Symptom checker integrated everywhere
-
-Run `npm run dev` and test `/find-doctors`!
-
+## Author
+Rahul Singh

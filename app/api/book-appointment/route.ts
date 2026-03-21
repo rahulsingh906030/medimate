@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/auth'
 
 // Mock in-memory storage for bookings (in real app: DB like Prisma/Postgres)
 let mockBookings: Array<{
@@ -21,9 +20,6 @@ function generateBookingId(): string {
 }
 
 export async function POST(request: NextRequest) {
-  const { user, response } = requireAuth(request)
-  if (response) return response
-
   try {
     const body = await request.json();
     const { name, email, phone, doctorPlaceId, specialty, date, time } = body;
@@ -39,10 +35,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Valid email required' }, { status: 400 });
     }
 
-    // Phone validation (international E.164 style)
-    const cleanPhone = phone.replace(/[^\d+]/g, '');
-    if (!/^[\+]?[1-9][\d]{7,15}$/.test(cleanPhone)) {
-      return NextResponse.json({ error: 'Valid phone required (+1234567890 format, 8-16 digits)' }, { status: 400 });
+    // Phone validation (simple)
+    if (!/^\d{10,}$/.test(phone.replace(/[-\s]/g, ''))) {
+      return NextResponse.json({ error: 'Valid phone number required (10+ digits)' }, { status: 400 });
     }
 
     // Date validation (future date)
@@ -53,7 +48,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Booking date must be in the future' }, { status: 400 });
     }
 
-    // Mock: Always available for demo
+    // Mock doctor availability check (50% chance busy)
+    if (Math.random() < 0.3) {
+      return NextResponse.json({ error: `Dr. ${specialty} is not available on ${date} at ${time}` }, { status: 409 });
+    }
 
     // Create booking
     const bookingId = generateBookingId();
@@ -71,6 +69,7 @@ export async function POST(request: NextRequest) {
     };
 
     mockBookings.push(newBooking);
+    console.log('New booking created:', newBooking); // Log for demo
 
     return NextResponse.json({
       success: true,
@@ -80,6 +79,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
+    console.error('Booking API error:', error);
     return NextResponse.json({ error: 'Server error processing booking' }, { status: 500 });
   }
 }

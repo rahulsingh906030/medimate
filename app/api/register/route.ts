@@ -34,7 +34,6 @@ export async function POST(request: NextRequest) {
       token
     })
   } catch (error) {
-    // Silent error handling - JSON parse or users file issue
     return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
 }
