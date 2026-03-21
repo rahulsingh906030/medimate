@@ -1,28 +1,37 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { useState, useEffect } from 'react'
+import { getLocationFromIP, reverseGeocode } from './geolocation'
 
+// Tailwind merge
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// Haversine formula to calculate distance between two lat/lng points in km
-export function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371 // Earth's radius in km
-  const dLat = (lat2 - lat1) * Math.PI / 180
-  const dLng = (lng2 - lng1) * Math.PI / 180
-  const a = 
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLng / 2) * Math.sin(dLng / 2)
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-  const distance = R * c
-  return Math.round(distance * 10) / 10 // 1 decimal place
+// Cache constants for geolocation
+export const CACHE_KEY_IP = 'medimate_ip_geo'
+export const CACHE_KEY_GEO_PREFIX = 'medimate_geo'
+export const CACHE_EXPIRY_24H = 24 * 60 * 60 * 1000 // 24 hours
+
+// Debounce hook for search inputs
+export function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [value, delay])
+
+  return debouncedValue
 }
 
-// Format distance nicely
-export function formatDistance(distance: number): string {
-  if (distance < 1) return '< 1 km'
-  if (distance < 10) return `${distance} km`
-  return `${distance.toFixed(0)} km`
-}
+// Export geolocation (despite file re-export issue)
+export { getLocationFromIP, reverseGeocode }
+
+// Note: calculateDistance/formatDistance moved to main utils if needed
 

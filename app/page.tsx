@@ -42,7 +42,7 @@ export default function Home() {
               <strong className="text-foreground">Disclaimer:</strong> MediMate provides AI-powered health information
               for educational purposes only. Always consult with qualified healthcare professionals for medical advice.
             </p>
-            <p>© 2025 MediMate. Built with BLACKBOX AI.</p>
+            <p>© 2026 MediMate. All rights reserved.</p>
           </div>
         </div>
       </footer>

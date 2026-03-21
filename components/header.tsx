@@ -11,13 +11,42 @@ export function Header() {
   const [user, setUser] = useState<{name?: string; email: string} | null>(null)
   const router = useRouter()
 
+  // Check auth state on mount
   useEffect(() => {
     const token = localStorage.getItem('token')
     const storedUser = localStorage.getItem('user')
     if (token && storedUser) {
       setIsAuthenticated(true)
-      setUser(JSON.parse(storedUser))
+      try {
+        setUser(JSON.parse(storedUser))
+      } catch(e) {
+        // Silently ignore invalid JSON
+      }
     }
+  }, [])
+
+  // Listen for storage changes (cross-tab + login on other pages)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'token') {
+        const token = localStorage.getItem('token')
+        const storedUser = localStorage.getItem('user')
+        if (token && storedUser) {
+          setIsAuthenticated(true)
+          try {
+            setUser(JSON.parse(storedUser))
+          } catch(e) {
+            // Silently ignore invalid JSON
+          }
+        } else {
+          setIsAuthenticated(false)
+          setUser(null)
+        }
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
   }, [])
 
   const handleLogout = () => {
@@ -45,9 +74,16 @@ export function Header() {
           <Link href="#how-it-works" className="text-sm font-medium hover:text-primary transition-colors">
             How It Works
           </Link>
-          <Link href="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
-            Dashboard
-          </Link>
+          {isAuthenticated && (
+            <Link href="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
+              Dashboard
+            </Link>
+          )}
+          {isAuthenticated && (
+            <Link href="/find-doctors" className="text-sm font-medium hover:text-primary transition-colors">
+              Find Doctors
+            </Link>
+          )}
         </nav>
 
         <div className="flex items-center gap-3">

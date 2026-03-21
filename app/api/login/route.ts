@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
       user: { id: user.id, email: user.email, name: user.name }
     })
   } catch (error) {
+    // Silent error handling - JSON parse or validation failed
     return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
 }

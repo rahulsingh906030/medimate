@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { Search, Loader2, AlertCircle, CheckCircle2, Stethoscope, Home, MapPin, Download, Mic, X } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 
+
+
 interface PredictionResult {
   disease: string
   confidence: number
@@ -41,9 +43,9 @@ export function SymptomChecker() {
   }
 
   const handleVoiceInput = () => {
-    if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
-      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition
-      const recognition = new SpeechRecognition()
+    const SpeechRecognitionClass = window.webkitSpeechRecognition || window.SpeechRecognition
+    if (SpeechRecognitionClass) {
+      const recognition = new SpeechRecognitionClass()
 
       recognition.continuous = false
       recognition.interimResults = false
@@ -51,7 +53,7 @@ export function SymptomChecker() {
       recognition.onstart = () => setIsListening(true)
       recognition.onend = () => setIsListening(false)
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript
         setSymptoms((prev) => prev + (prev ? " " : "") + transcript)
       }
@@ -82,7 +84,7 @@ export function SymptomChecker() {
       const data = await response.json()
       setResult(data)
     } catch (error) {
-      console.error("Error:", error)
+      // Network or API error
       alert("Failed to analyze symptoms. Please try again.")
     } finally {
       setLoading(false)

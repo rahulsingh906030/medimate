@@ -1,7 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { isAuthenticated } from "@/lib/auth"
 import { useSearchParams } from 'next/navigation'
+import useSWR from 'swr'
+import { useDebounce } from '@/lib/utils'
+import { CACHE_KEY_IP } from '@/lib/utils'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,20 +14,14 @@ import { Loader2 } from 'lucide-react'
 import { MapPin, Search, Phone, Star, Navigation, AlertTriangle } from 'lucide-react'
 import { Header } from '@/components/header'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+// Remove unused reexports - using SWR instead
+import { getLocationFromIP, reverseGeocode } from '@/lib/geolocation'
+import type { Doctor as DoctorType } from '@/lib/geolocation'
 import { calculateDistance, formatDistance } from '@/lib/utils'
+import { useCallback } from "react"
 
-interface Doctor {
-  name: string
-  specialty: string
-  rating: number
-  experience: string
-  hospital: string
+interface Doctor extends DoctorType {
   distance: string
-  phone: string
-  address: string
-  lat: number
-  lng: number
-  place_id?: string
 }
 
 const SPECIALTIES = [
@@ -42,66 +41,123 @@ const SPECIALTIES = [
 ]
 
 export default function FindDoctorsPage() {
+  const router = useRouter()
   const searchParams = useSearchParams()
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push('/login')
+    }
+  }, [router])
+
+  // Early return if not authenticated (prevents flash)
+  if (!isAuthenticated()) {
+    return null
+  }
   const [location, setLocation] = useState('')
   const [specialty, setSpecialty] = useState(searchParams.get('specialty') || '')
-  const [doctors, setDoctors] = useState<Doctor[]>([])
-  const [loading, setLoading] = useState(false)
+  const debouncedSpecialty = useDebounce(specialty, 300)
+  
+// SWR fetcher function
+const fetcher = async (url: string) => {
+  const res = await fetch(url)
+  if (!res.ok) {
+    const error = new Error('Failed to fetch doctors')
+    ;(error as any).status = res.status
+    throw error
+  }
+  return res.json()
+}
+
+// SWR for doctors data (with fallback source display)
+const { data: apiData, error: apiError, isLoading } = useSWR(
+  userLat && userLng && debouncedSpecialty ? 
+    `/api/doctors?lat=${userLat}&lng=${userLng}&specialty=${encodeURIComponent(debouncedSpecialty)}` : 
+    null,
+  fetcher,
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
+  )
+
+  const doctors: Doctor[] = (() => {
+    if (!apiData?.doctors || !userLat || !userLng) return []
+    return apiData.doctors.map((doctor: any) => ({
+      ...doctor,
+      distance: doctor.lat && doctor.lng ? formatDistance(calculateDistance(userLat, userLng, doctor.lat, doctor.lng)) : 'Nearby'
+    })) as Doctor[]
+  })()
+
   const [error, setError] = useState('')
   const [userLat, setUserLat] = useState<number | null>(null)
   const [userLng, setUserLng] = useState<number | null>(null)
   const [userLocationName, setUserLocationName] = useState('Detecting location...')
+  const [geoLoading, setGeoLoading] = useState(true)
 
+  // Check cached location first
   useEffect(() => {
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude
-          const lng = position.coords.longitude
-          setUserLat(lat)
-          setUserLng(lng)
-          handleSearch()
-        },
-        () => {
-          // Fallback to Noida, India
-          setError('Using Noida location (enable GPS for accurate nearby)')
-          setUserLat(28.5355)
-          setUserLng(77.3910)
-          handleSearch()
-        }
-      )
-    } else {
-      setUserLat(28.5355)
-      setUserLng(77.3910)
-      handleSearch()
+    const cachedIP = localStorage.getItem(CACHE_KEY_IP)
+    if (cachedIP) {
+      try {
+        const { data } = JSON.parse(cachedIP)
+        setUserLat(data.lat)
+        setUserLng(data.lng)
+        setUserLocationName('Using cached location')
+        setGeoLoading(false)
+        return
+      } catch {}
     }
+    
+    // GPS + fallbacks (reduced timeout)
+    const detectLocation = async () => {
+      setGeoLoading(true)
+      setUserLocationName('Detecting GPS...')
+      
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const lat = position.coords.latitude
+            const lng = position.coords.longitude
+            setUserLat(lat)
+            setUserLng(lng)
+            setUserLocationName('GPS location ready')
+            setGeoLoading(false)
+          },
+          async () => {
+            // IP fallback
+            setUserLocationName('GPS denied, using IP...')
+            const ipLoc = await getLocationFromIP()
+            if (ipLoc) {
+              setUserLat(ipLoc.lat)
+              setUserLng(ipLoc.lng)
+              setUserLocationName(`IP: ${ipLoc.city || 'Detected'}`)
+            } else {
+              setError('Location unavailable')
+            }
+            setGeoLoading(false)
+          },
+          {
+            enableHighAccuracy: false, // Faster
+            timeout: 5000,
+            maximumAge: 30 * 60 * 1000, // 30 min cache
+          }
+        )
+      } else {
+        const ipLoc = await getLocationFromIP()
+        if (ipLoc) {
+          setUserLat(ipLoc.lat)
+          setUserLng(ipLoc.lng)
+          setUserLocationName(`IP: ${ipLoc.city || 'Detected'}`)
+        }
+        setGeoLoading(false)
+      }
+    }
+
+    detectLocation()
   }, [])
 
-  const handleSearch = async () => {
-    setLoading(true)
-    setError('')
-    const lat = userLat || 28.5355
-    const lng = userLng || 77.3910
-    const spec = specialty || 'General Physician'
-
-    try {
-      const response = await fetch(`/api/doctors?lat=${lat}&lng=${lng}&specialty=${encodeURIComponent(spec)}`)
-      const data = await response.json()
-
-      if (data.error) {
-        throw new Error(data.error)
-      }
-
-      const doctorsWithDistance = data.doctors.map((doctor: Doctor) => ({
-        ...doctor,
-        distance: formatDistance(calculateDistance(lat, lng, doctor.lat, doctor.lng))
-      }))
-
-      setDoctors(doctorsWithDistance)
-    } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
+  // Manual refresh button handler (SWR auto-updates)
+  const handleManualRefresh = async () => {
+    if (userLat && userLng) {
+      setError('')
     }
   }
 
@@ -117,7 +173,7 @@ export default function FindDoctorsPage() {
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl md:text-4xl font-bold mb-3">Find Nearby Doctors & Hospitals</h1>
-            <p className="text-muted-foreground">Real doctors in your area (Noida/Delhi)</p>
+<p className="text-muted-foreground">Real doctors & hospitals from your current location worldwide</p>
           </div>
 
           <Card className="p-6 mb-8">
@@ -140,9 +196,9 @@ export default function FindDoctorsPage() {
                 </Select>
               </div>
               <div className="flex items-end">
-                <Button onClick={handleSearch} disabled={loading} className="w-full">
-                  {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                  {loading ? 'Searching...' : 'Find Doctors'}
+                <Button onClick={handleManualRefresh} disabled={geoLoading || isLoading} className="w-full">
+                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                  {isLoading ? 'Searching...' : 'Refresh'}
                 </Button>
               </div>
             </div>
@@ -151,12 +207,12 @@ export default function FindDoctorsPage() {
           {userLat && userLng && (
             <Card className="p-4 mb-6 bg-primary/5">
               <p className="text-sm">
-                📍 Location: {userLat.toFixed(4)}, {userLng.toFixed(4)} • <strong>{specialty || 'All'}</strong>
+                📍 {userLocationName} ({userLat?.toFixed(4)}, {userLng?.toFixed(4)}) • <strong>{specialty || 'All'}</strong>
               </p>
             </Card>
           )}
 
-          {error && (
+{error && (
             <Card className="p-4 mb-6 border-destructive bg-destructive/5">
               <div className="flex gap-2 text-destructive">
                 <AlertTriangle className="h-5 w-5 flex-shrink-0" />
@@ -164,12 +220,20 @@ export default function FindDoctorsPage() {
               </div>
             </Card>
           )}
+          {apiError && !error && (
+            <Card className="p-4 mb-6 border-yellow-500 bg-yellow-50">
+              <div className="flex gap-2 text-yellow-800">
+                <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+                <span>API error: {apiError.message || 'Try refresh'}</span>
+              </div>
+            </Card>
+          )}
 
           <div className="space-y-4 mb-8">
-            {loading ? (
+            {(geoLoading || isLoading) ? (
               <Card className="p-12 text-center">
                 <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-                <p>Finding real nearby doctors...</p>
+                <p>{geoLoading ? 'Getting your location...' : 'Loading doctors...'}</p>
               </Card>
             ) : doctors.length ? (
               doctors.map((doctor, i) => (
@@ -221,7 +285,8 @@ export default function FindDoctorsPage() {
               <Card className="p-12 text-center text-muted-foreground">
                 <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <h3 className="text-lg font-semibold mb-2">No Doctors Found</h3>
-                <p>Select specialty and search, or add Google API key for real data.</p>
+                <p className="text-sm">{apiData?.source || 'mock'}</p>
+                <p>Try another specialty or refresh</p>
               </Card>
             )}
           </div>
@@ -231,10 +296,17 @@ export default function FindDoctorsPage() {
               width="100%"
               height="400"
               loading="lazy"
-              src={`https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14028.514!2d77.3908!3d28.5355!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390cf0d5b!2sNoida%2C%20Uttar%20Pradesh!5e0!3m2!1sen!2sin!4v1724221651271`}
+              src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}&q=${userLat},${userLng}&maptype=satellite`}
               referrerPolicy="no-referrer-when-downgrade"
               className="rounded-b-lg"
             />
+            {!userLat && (
+              <div className="p-8 text-center text-muted-foreground">
+                <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Enable location access for dynamic map</p>
+              </div>
+            )}
+            
           </Card>
         </div>
       </main>
