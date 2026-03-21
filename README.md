@@ -1,6 +1,6 @@
 # MediMate disease prediction
 
-Generated with BLACKBOX AI Builder
+
 
 ## Getting Started
 
