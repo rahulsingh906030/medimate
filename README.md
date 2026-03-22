@@ -1,6 +1,6 @@
 # MediMate disease prediction
 
-Generated with Rahul kumar
+G
 
 ## Getting Started
 
