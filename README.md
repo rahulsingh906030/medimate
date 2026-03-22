@@ -1,7 +1,5 @@
 # MediMate disease prediction
 
-G
-
 ## Getting Started
 
 First, install the dependencies:
