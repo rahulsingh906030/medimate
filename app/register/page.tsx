@@ -36,7 +36,6 @@ export default function RegisterPage() {
       localStorage.setItem('token', data.token)
       localStorage.setItem('user', JSON.stringify(data.user))
       router.push('/dashboard')
-      router.refresh()
     } catch (err) {
       setError('Network error. Please try again.')
     } finally {
@@ -47,9 +46,12 @@ export default function RegisterPage() {
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (token) {
-      router.push('/dashboard')
+      const user = JSON.parse(localStorage.getItem('user') || '{}')
+      if (user.id) {  // Only redirect if valid user
+        router.replace('/dashboard')
+      }
     }
-  }, [router])
+  }, [])  // Remove router dep to avoid loops
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">

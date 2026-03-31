@@ -44,9 +44,12 @@ export default function LoginPage() {
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (token) {
-      router.push('/dashboard')
+      const user = JSON.parse(localStorage.getItem('user') || '{}')
+      if (user.id) {
+        router.replace('/dashboard')
+      }
     }
-  }, [router])
+  }, [])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">

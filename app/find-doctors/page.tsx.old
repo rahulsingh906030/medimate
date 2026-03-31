@@ -9,6 +9,7 @@ import { Header } from '@/components/header'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { calculateDistance, formatDistance } from '@/lib/utils'
 import { getUserLocation, type Location } from '@/lib/geolocation'
+import type { DoctorType } from '@/types/doctor' // Assume Doctor type exported
 
 interface Doctor {
   name: string
@@ -80,7 +81,7 @@ export default function FindDoctorsPage() {
 
   // Auto-search if specialty from symptom checker
   useEffect(() => {
-    if (locationStatus === 'ready' && location && specialty) {
+if (locationStatus === 'ready' && location && specialty) {
       handleSearch()
     }
   }, [locationStatus, specialty, location?.lat, location?.lng])
@@ -96,7 +97,7 @@ export default function FindDoctorsPage() {
     const spec = specialty || 'General Physician'
 
     try {
-      const response = await fetch(`/api/doctors?lat=${lat}&lng=${lng}&specialty=${encodeURIComponent(spec)}`)
+const response = await fetch(`/api/doctors?lat=${lat}&lng=${lng}&specialty=${encodeURIComponent(spec)}`)
       const data = await response.json()
 
       if (data.error) {
@@ -123,7 +124,7 @@ export default function FindDoctorsPage() {
   }
 
   const openInMaps = (address: string, lat?: number, lng?: number) => {
-    const query = lat && lng ? `${lat},${lng}` : encodeURIComponent(address)
+const query = lat && lng ? `${lat},${lng}` : encodeURIComponent(address)
     window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank')
   }
 
@@ -138,7 +139,7 @@ export default function FindDoctorsPage() {
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold tracking-tight">Find Nearby Doctors & Hospitals</h1>
+Find Nearby Doctors & Hospitals
             <p className="text-muted-foreground">Precise GPS location + real-time nearby doctors</p>
           </div>
 
@@ -147,12 +148,12 @@ export default function FindDoctorsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 justify-between">
                 📍 Current Location
-                {locationStatus !== 'loading' && (
+locationStatus !== 'loading' && (
                   <Button variant="ghost" size="sm" onClick={refreshLocation}>
                     <RefreshCw className="h-4 w-4 mr-1" />
                     Refresh GPS
                   </Button>
-                )}
+                )
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -163,7 +164,7 @@ export default function FindDoctorsPage() {
                 </div>
               )}
 
-              {locationStatus === 'ready' && location && (
+locationStatus === 'ready' && location && (
                 <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/20 rounded-lg border">
                   <div className="font-semibold">{location.address}</div>
                   <div className="text-sm text-muted-foreground">
@@ -218,7 +219,7 @@ export default function FindDoctorsPage() {
                   ) : (
                     <>
                       <Search className="mr-2 h-4 w-4" />
-                      Find Doctors ({locationStatus === 'ready' ? '<5km' : 'Loading location...'})
+                      Find Doctors ({locationStatus === 'ready' ? '<20km' : 'Loading location...'})
                     </>
                   )}
                 </Button>
@@ -226,7 +227,7 @@ export default function FindDoctorsPage() {
             </div>
           </Card>
 
-          {apiError && (
+{apiError && (
             <Card className="p-4 mb-6 border-destructive/50 bg-destructive/10">
               <div className="flex items-center gap-2 text-destructive">
                 <AlertTriangle className="h-5 w-5 flex-shrink-0" />
@@ -241,7 +242,7 @@ export default function FindDoctorsPage() {
               <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
               <p>Finding real doctors near {location?.address?.split(',')[0] || 'you'}...</p>
             </Card>
-          ) : doctors.length === 0 && locationStatus === 'ready' ? (
+doctors.length === 0 && locationStatus === 'ready' ? (
             <Card className="p-12 text-center text-muted-foreground border-2 border-dashed border-muted">
               <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <h3 className="text-lg font-semibold mb-2">No doctors found</h3>
@@ -256,10 +257,10 @@ export default function FindDoctorsPage() {
                       <div className="flex-1 mb-4 lg:mb-0">
                         <div className="flex items-start justify-between mb-3">
                           <CardTitle className="text-xl">{doctor.name}</CardTitle>
-                          {doctor.rating && doctor.rating > 0 && (
+doctor.rating && doctor.rating > 0 && (
                             <div className="bg-accent px-2 py-1 rounded-full text-sm flex items-center gap-1">
                               <Star className="h-4 w-4 fill-current" />
-                              {Number(doctor.rating).toFixed(1)}
+                              {doctor.rating.toFixed(1)}
                             </div>
                           )}
                         </div>
@@ -280,8 +281,8 @@ export default function FindDoctorsPage() {
                       </div>
                       <div className="flex flex-col sm:flex-row gap-3 min-w-fit">
                         {doctor.phone !== 'N/A' && (
-                          <Button variant="outline" className="w-full sm:w-auto">
-                            <a href={`tel:${doctor.phone.replace(/[^0-9+]/g, '')}`}>
+                          <Button variant="outline" className="w-full sm:w-auto" asChild>
+                            <a href={`tel:${doctor.phone}`}>
                               Call Doctor
                             </a>
                           </Button>
@@ -307,13 +308,13 @@ export default function FindDoctorsPage() {
               <CardTitle>Your Area</CardTitle>
               <CardDescription>Map centered on your current location</CardDescription>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent>
               <iframe
                 src={mapUrl}
                 width="100%"
                 height="400"
-                style={{ border: 0 }}
-                loading="lazy"
+                style={{border:0}}
+                loading="fast"
                 allowFullScreen
                 referrerPolicy="no-referrer-when-downgrade"
               />

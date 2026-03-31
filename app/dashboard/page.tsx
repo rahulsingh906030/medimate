@@ -34,9 +34,9 @@ export default function DashboardPage() {
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) {
-      router.push('/login')
+      router.replace('/login')
     }
-  }, [router])
+  }, [])
 
   return (
     <div className="min-h-screen bg-background">
