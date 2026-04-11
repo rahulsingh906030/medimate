@@ -65,6 +65,5 @@ lib/
 - PWA ready
 - 100% TypeScript
 
-**Made fully working by BLACKBOXAI! 🎉**
 
 
