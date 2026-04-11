@@ -30,7 +30,7 @@ async function getIPLocation(): Promise<Location | null> {
         lat: data.latitude || 28.6139,
         lng: data.longitude || 77.2090,
         city: data.city || 'Delhi',
-        address: data.city_state || 'India'
+        address: data.city_state || ' all India'
       }
     }
   } catch (err) {
