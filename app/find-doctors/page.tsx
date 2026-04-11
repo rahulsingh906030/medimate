@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Loader2, MapPin, Search, Phone, Star, Navigation, AlertTriangle, RefreshCw } from 'lucide-react'
 import { Header } from '@/components/header'
+import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { calculateDistance, formatDistance } from '@/lib/utils'
 import { getUserLocation, type Location } from '@/lib/geolocation'
@@ -44,6 +45,9 @@ export default function FindDoctorsPage() {
   const searchParams = useSearchParams()
   const [location, setLocation] = useState<Location | null>(null)
   const [locationStatus, setLocationStatus] = useState<'loading' | 'error' | 'ready'>('loading')
+  const [manualLat, setManualLat] = useState('')
+  const [manualLng, setManualLng] = useState('')
+  const [useManualLocation, setUseManualLocation] = useState(false)
   const [specialty, setSpecialty] = useState(searchParams.get('specialty') || '')
   const [doctors, setDoctors] = useState<Doctor[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
@@ -57,7 +61,11 @@ export default function FindDoctorsPage() {
     const fetchLocation = async () => {
       try {
         setLocationStatus('loading')
-        const userLoc = await getUserLocation()
+        const userLoc = useManualLocation ? {
+          lat: parseFloat(manualLat) || 24.6969,
+          lng: parseFloat(manualLng) || 85.0000,
+          address: `Manual: Gaya Test (${manualLat}, ${manualLng})`
+        } : await getUserLocation()
         if (mounted) {
           setLocation(userLoc)
           setLocationStatus('ready')
@@ -76,7 +84,7 @@ export default function FindDoctorsPage() {
     return () => {
       mounted = false
     }
-  }, [refreshKey])
+  }, [refreshKey, useManualLocation, manualLat, manualLng]) // Auto-update on manual changes
 
   // Auto-search if specialty from symptom checker
   useEffect(() => {
@@ -146,12 +154,22 @@ export default function FindDoctorsPage() {
           <Card className="p-6 mb-8">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 justify-between">
-                📍 Current Location
+                📍 Current Location {location?.city && ` - ${location.city}`}
                 {locationStatus !== 'loading' && (
-                  <Button variant="ghost" size="sm" onClick={refreshLocation}>
-                    <RefreshCw className="h-4 w-4 mr-1" />
-                    Refresh GPS
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="sm" onClick={refreshLocation}>
+                      <RefreshCw className="h-4 w-4 mr-1" />
+                      Auto GPS/Manual
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setUseManualLocation(!useManualLocation)}
+                      className={useManualLocation ? 'bg-primary text-primary-foreground' : ''}
+                    >
+                      {useManualLocation ? 'GPS' : 'Manual'}
+                    </Button>
+                  </div>
                 )}
               </CardTitle>
             </CardHeader>
@@ -164,11 +182,31 @@ export default function FindDoctorsPage() {
               )}
 
               {locationStatus === 'ready' && location && (
-                <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/20 rounded-lg border">
-                  <div className="font-semibold">{location.address}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
+                <div className="space-y-3">
+                  <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/20 rounded-lg border">
+                    <div className="font-semibold">{location.address}</div>
+                    <div className="text-sm text-muted-foreground">
+                      Lat: {location.lat.toFixed(4)} | Lng: {location.lng.toFixed(4)} {useManualLocation && '(Manual)'}
+                    </div>
                   </div>
+                  {useManualLocation && (
+                    <div className="grid grid-cols-2 gap-2 p-3 bg-muted rounded-lg">
+                      <Input 
+                        type="number" 
+                        placeholder="Lat (24.7)" 
+                        value={manualLat}
+                        onChange={(e) => setManualLat(e.target.value)}
+                        step="any"
+                      />
+                      <Input 
+                        type="number" 
+                        placeholder="Lng (85.0)" 
+                        value={manualLng}
+                        onChange={(e) => setManualLng(e.target.value)}
+                        step="any"
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 

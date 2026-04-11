@@ -22,5 +22,11 @@
     "name": "rahul kumar",
     "email": "rahulrahulgaya@gmail.com",
     "password": "90603045"
+  },
+  {
+    "id": 5,
+    "name": "Test User",
+    "email": "test@test.com",
+    "password": "pass123"
   }
 ]

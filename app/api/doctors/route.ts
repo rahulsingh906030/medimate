@@ -1,23 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { MOCK_DOCTORS_BY_SPECIALTY, getMockDoctorsForSpecialty, type MockDoctor } from './mocks'
+import { GAYA_DOCTORS_BY_SPECIALTY, getGayaDoctorsForSpecialty } from './mocks-gaya'
 import { calculateDistance } from '@/lib/utils'
 
 const API_KEY = process.env.GOOGLE_PLACES_API_KEY || ''
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
-  const lat = parseFloat(searchParams.get('lat') || '28.5355') // User location or Noida default
-  const lng = parseFloat(searchParams.get('lng') || '77.3910')
+  const lat = parseFloat(searchParams.get('lat') || '24.6969') // Gaya default
+  const lng = parseFloat(searchParams.get('lng') || '85.0000')
   const specialty = searchParams.get('specialty') || 'General Physician'
 
   if (!lat || !lng || isNaN(lat) || isNaN(lng)) {
     return NextResponse.json({ error: 'Latitude and longitude required' }, { status: 400 })
   }
 
-  // Dynamic location-aware mock generation (no API key needed)
-  console.log(`🔍 Generating dynamic mock doctors for ${specialty} around [${lat.toFixed(4)}, ${lng.toFixed(4)}]`)
-  
-  const baseDoctors = getMockDoctorsForSpecialty(specialty, 8) // Get 5-8 base doctors
+  // City-aware base doctors selection
+  let baseDoctors: MockDoctor[]
+  const isGayaRegion = lat > 24.5 && lat < 25.0 && lng > 84.8 && lng < 85.2 // Gaya bounding box
+  if (isGayaRegion) {
+    console.log('🌟 Gaya region detected - using local doctors')
+    baseDoctors = getGayaDoctorsForSpecialty(specialty, 8)
+  } else {
+    console.log('📍 Using NCR doctors')
+    baseDoctors = getMockDoctorsForSpecialty(specialty, 8)
+  }
+
+  console.log(`🔍 Generating dynamic mock doctors for ${specialty} around [${lat.toFixed(4)}, ${lng.toFixed(4)}] (${isGayaRegion ? 'Gaya' : 'NCR'})`)
 
   // Perturb coordinates around USER location (±0.04 deg ~4-5km radius scatter)
   // Simulates realistic nearby doctors
