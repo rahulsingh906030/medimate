@@ -11,7 +11,7 @@
 - **🏥 Find Nearby Doctors**: Mock/real Google Places (Noida/Delhi doctors + geolocation)
 - **🎤 Voice Symptom Input**: Web Speech API
 - **📱 Full Auth**: Register/Login/Dashboard (JSON users)
-- **📅 Appointment Booking**: Mock API ready
+- **📅 Appointment Booking**: Mock API ready 
 - **📄 PDF Report Export**: Health summary download
 - **🗺️ Distance Calc**: Real km distances
 - **📱 Responsive**: Mobile-first shadcn/ui
