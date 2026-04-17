@@ -1,6 +1,7 @@
 # MediMate 🚀 - AI-Powered Health Assistant
 
 [![Next.js](https://img.shields.io/badge/Next.js-15-blue.svg)](https://nextjs.org/)
+[![CI](https://github.com/rahulsingh906030/medimate/actions/workflows/ci.yml/badge.svg)](https://github.com/rahulsingh906030/medimate/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue.svg)](https://typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-blue.svg)](https://tailwindcss.com/)
 
